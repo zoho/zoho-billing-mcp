@@ -36,10 +36,10 @@ You (prompt) → AI Agent (MCP Client) → Zoho MCP Server → Zoho Billing API 
 Zoho MCP works with any MCP-compatible client.
 
 - [Claude](https://claude.ai) (claude.ai / Desktop)
-- [ChatGPT](https://chatgpt.com) (Plus, Pro, or Team plan required)
 
 Also compatible with:
 
+- Codex
 - Cursor
 - Windsurf
 - VS Code (GitHub Copilot in Agent mode)
