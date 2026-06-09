@@ -1,44 +1,57 @@
-# Zoho Billing MCP
+# Zoho Billing MCP: Connect Zoho Billing to AI Agents
 
-Connect [Zoho Billing](https://www.zoho.com/billing/) to AI agents using the [Model Context Protocol (MCP)](https://www.zoho.com/mcp/).
+Use [Zoho Billing](https://www.zoho.com/billing/) with AI agents through the [Model Context Protocol (MCP)](https://www.zoho.com/mcp/). This repository explains how to set up a Zoho Billing MCP server, connect MCP clients like Claude and ChatGPT, and safely automate billing workflows.
 
-Zoho Billing MCP lets you connect your AI agent to your Zoho Billing organization using the Model Context Protocol (MCP), an open standard that lets AI models interact with external tools and data sources in a structured, secure way.
+Zoho Billing MCP connects your AI agent to your Zoho Billing organization. With this integration, your agent can query, create, and manage billing data from natural-language prompts while following your configured tools, permissions, and audit controls.
 
-Once configured, your AI agent can query, create, and manage billing data directly from your prompts. When you prompt your AI agent which is the MCP client, the request flows through the MCP server, which maps it to the appropriate Zoho Billing API call and returns the result back to your agent.
+Instead of manually navigating dashboards or writing custom API scripts, you can ask your AI assistant to create invoices, retrieve overdue payments, update subscriptions, and generate billing reports.
 
-This means instead of manually navigating the Zoho dashboard or writing custom API scripts, you can ask your agent to pull overdue invoices, create a new subscription plan, or reconcile charges — and it will handle the API calls for you.
+## Table of Contents
 
-## Key Concepts
+- [What Is Zoho Billing MCP?](#what-is-zoho-billing-mcp)
+- [How Zoho Billing MCP Works](#how-zoho-billing-mcp-works)
+- [Supported MCP Clients](#supported-mcp-clients)
+- [Prerequisites](#prerequisites)
+- [Setup Guide](#setup-guide)
+- [Activity Logs](#activity-logs)
+- [Managing Connections](#managing-connections)
+- [Regenerate API Key](#regenerate-api-key)
+- [Example Prompts](#example-prompts)
+- [Prompt Best Practices](#prompt-best-practices)
+- [FAQ](#faq)
+- [Resources](#resources)
+- [License](#license)
+
+## What Is Zoho Billing MCP?
+
+Zoho Billing MCP is an MCP server integration that exposes Zoho Billing actions as tools for AI agents.
 
 | Component | Description |
 |-----------|-------------|
-| **MCP Server** | The configured server that exposes a set of tools (e.g., Create Invoice, Get Contact Person, Update Subscription) to your AI agent. |
-| **MCP Client** | The AI agent (Claude, ChatGPT, Cursor, etc.) that receives and processes your prompts. |
-| **Tools** | The specific actions your AI agent is permitted to perform in Zoho Billing. You select tools from the available list in Zoho MCP. |
+| **MCP Server** | A configured server that exposes tools (for example: Create Invoice, Get Contact Person, Update Subscription). |
+| **MCP Client** | The AI assistant that receives your prompts (Claude, ChatGPT, Cursor, VS Code, and others). |
+| **Tools** | Allowed Zoho Billing actions your AI agent can perform, selected in Zoho MCP. |
 
-> **Note:** Every action your AI agent performs is subject to API limits, permissions, and audit logs.
+> **Note:** Every AI-triggered action is subject to Zoho API limits, user permissions, and audit logs.
 
+## How Zoho Billing MCP Works
 
-## How It Works
-
+```text
+You (Prompt) -> AI Agent (MCP Client) -> Zoho MCP Server -> Zoho Billing API -> Action Executed
 ```
-You (prompt) → AI Agent (MCP Client) → Zoho MCP Server → Zoho Billing API → Action executed
-```
 
-1. You type a prompt in your AI agent's interface — e.g., *"In [Org ID], create an invoice for Zylker Corp for $500."*
-2. The AI agent identifies the right tool from the enabled tools on your MCP server.
-3. The AI agent sends the request to the Zoho MCP server.
-4. The MCP server calls the Zoho Billing API to carry out the action.
-5. The action is executed in your Zoho Billing account.
+1. You enter a prompt, for example: "In [Org ID], create an invoice for Zylker Corp for $500."
+2. The AI agent selects the correct enabled tool.
+3. The request is sent to the Zoho MCP server.
+4. The server maps the request to the correct Zoho Billing API call.
+5. The action is completed in your Zoho Billing account.
 
 ## Supported MCP Clients
 
-Zoho MCP works with any MCP-compatible client.
+Zoho MCP works with MCP-compatible clients, including:
 
-- [Claude](https://claude.ai) (claude.ai / Desktop)
-
-Also compatible with:
-
+- [Claude](https://claude.ai) (Web and Desktop)
+- ChatGPT
 - Codex
 - Cursor
 - Windsurf
@@ -50,144 +63,158 @@ Also compatible with:
 
 ## Prerequisites
 
-- You must be a user in an active Zoho Billing organization.
-- Account-level access to your Zoho Billing organization.
-- MCP client installed and ready to use (e.g., Claude, ChatGPT, Cursor).
-- For **Claude**: You must be a Claude Organization Admin (Team plan or higher) to connect the integration.
-- For **ChatGPT**: A ChatGPT Plus, Pro, or Team plan is required.
+- An active Zoho Billing organization
+- Account-level access to that organization
+- An MCP client (Claude, ChatGPT, Cursor, or similar)
+- For **Claude**: Organization Admin access (Team plan or higher)
+- For **ChatGPT**: Plus, Pro, or Team plan
 
-> **Note:** Plan and role requirements may change. Always verify the latest requirements in [Claude's documentation](https://support.claude.com) or [ChatGPT's pricing page](https://openai.com/pricing) before getting started.
+> **Note:** Plan and role requirements may change. Confirm the latest eligibility in [Claude documentation](https://support.claude.com) and [ChatGPT pricing](https://openai.com/pricing).
 
-## Setup
+## Setup Guide
 
-### 1. Generate Your Server URL
+### 1. Generate Your MCP Server URL
 
-1. Log in to [Zoho MCP](https://www.zoho.com/mcp/) using your Zoho Billing account credentials.
+1. Sign in to [Zoho MCP](https://www.zoho.com/mcp/) with your Zoho Billing credentials.
 2. Create or select an MCP server.
-3. Go to **Connect** in the left sidebar.
-4. Copy the **Server URL** shown on the page.
+3. Open **Connect** in the left sidebar.
+4. Copy the displayed **Server URL**.
 
-Your Server URL follows this format:
+Server URL format:
 
-```
+```text
 https://[mcp-server-name]-[org-id].zohomcp.com/mcp/[api-key]/message
 ```
 
-> **⚠️ Warning:** Treat your Server URL like a password. It grants access to your Zoho Billing tools and data. Do not share it in public repositories, shared documents, or anywhere others can view it. If compromised, regenerate it immediately.
+> **Warning:** Treat your Server URL like a password. It grants access to Zoho Billing tools and data. Do not share it publicly. If exposed, regenerate it immediately.
 
 ### 2. Configure Tools
 
-Tools are the building blocks of everything your AI agent can do. Each tool maps to a specific Zoho Billing API call. With Tools, you can choose exactly which actions the AI agent is permitted to perform. 
+Each tool maps to a Zoho Billing API action. Enable only the actions your AI workflows require.
 
-1. Log in to your Zoho MCP account.
+1. Sign in to Zoho MCP.
 2. Select your MCP server.
-3. Go to **Tools** and enable the actions you need.
+3. Open **Tools**.
+4. Enable the required actions.
 
-[Learn more about configuring tools →](https://help.zoho.com/portal/en/kb/mcp/getting-started/articles/zoho-mcp-help-documentation#Manage_Tools)
+[Learn more about configuring tools](https://help.zoho.com/portal/en/kb/mcp/getting-started/articles/zoho-mcp-help-documentation#Manage_Tools)
 
 ### 3. Connect Your MCP Client
 
 #### Claude
 
-1. Go to [claude.ai/settings/connectors](https://claude.ai/settings/connectors), or open the Claude desktop app → **Settings** → **Connectors**.
-2. Click **Add Custom Connector**.
-3. Enter a name (e.g., "Zoho Billing").
-4. Paste the Server URL and click **Save**.
-5. Scroll to the connector and click **Connect**.
-6. Review and accept the authorization screens.
+1. Open [claude.ai/settings/connectors](https://claude.ai/settings/connectors) or Claude Desktop -> **Settings** -> **Connectors**.
+2. Select **Add Custom Connector**.
+3. Enter a connector name (for example, "Zoho Billing").
+4. Paste your MCP Server URL and select **Save**.
+5. Select **Connect**.
+6. Complete authorization.
 
 #### ChatGPT
 
-1. Log in to ChatGPT.
-2. Click your profile icon and go to **Settings**.
-3. Go to the **Apps** tab > **Advanced Settings**.
-4. Toggle **Developer Mode** and click **Create App**.
-5. Enter a name, paste the MCP Server URL, set Authentication to **OAuth**.
-6. Check *I trust this application* and click **Create**.
+1. Sign in to ChatGPT.
+2. Open **Settings** from your profile menu.
+3. Open **Apps** > **Advanced Settings**.
+4. Enable **Developer Mode** and select **Create App**.
+5. Enter a name, paste your MCP Server URL, and set authentication to **OAuth**.
+6. Confirm trust and create the app.
 
-#### Custom MCP Clients (Cursor, Windsurf, VS Code, etc.)
+#### Other MCP Clients (Cursor, Windsurf, VS Code, and more)
 
-[Follow the general MCP client setup guide →](https://help.zoho.com/portal/en/kb/mcp/getting-started/articles/zoho-mcp-help-documentation#Connect_the_Zoho_MCP_Server_with_Your_MCP_Client)
+[Follow the general MCP client setup guide](https://help.zoho.com/portal/en/kb/mcp/getting-started/articles/zoho-mcp-help-documentation#Connect_the_Zoho_MCP_Server_with_Your_MCP_Client)
 
 ## Activity Logs
 
-Every action your AI agent performs is logged. You can view logs from the Zoho MCP dashboard:
+All AI tool calls are logged in Zoho MCP.
 
-1. Log in to your Zoho MCP account.
-2. Select the MCP server.
-3. Go to **Logs** in the left sidebar to view the logs.
-4. You can filter by Date, Time, Status, Tool, ZUID, or Execution ID.
-
-Each log entry captures the following fields.
+1. Sign in to Zoho MCP.
+2. Select your MCP server.
+3. Open **Logs**.
+4. Filter by Date, Time, Status, Tool, ZUID, or Execution ID.
 
 | Field | Description |
 |-------|-------------|
-| **Tool** | The Zoho Billing action that was called (e.g., Create Invoice). |
-| **Status** | Whether the tool call succeeded or failed. |
-| **ZUID** | The Zoho User ID of the person whose AI agent triggered the action. |
-| **Execution ID** | A unique identifier for tracing and debugging. |
+| **Tool** | Zoho Billing action invoked (for example, Create Invoice). |
+| **Status** | Success or failure state of the tool call. |
+| **ZUID** | Zoho User ID that initiated the action through an AI client. |
+| **Execution ID** | Unique identifier for tracing and debugging. |
 
 ## Managing Connections
 
-Connections provide your AI agent with the access credentials (OAuth tokens) needed to interact with Zoho Billing. You can:
+Connections provide OAuth credentials so your AI agent can access Zoho Billing.
 
-- Let each user authorize access individually when they first use a tool.
-- Set up a single admin-managed connection for all tool calls across the organization.
+- User-managed: each user authorizes access the first time they run tools.
+- Admin-managed: one shared organization connection is used for tool calls.
 
-[Learn more about managing connections →](https://help.zoho.com/portal/en/kb/mcp/getting-started/articles/zoho-mcp-help-documentation#Manage_Your_Zoho_MCP_Server_Connections)
+[Learn more about managing connections](https://help.zoho.com/portal/en/kb/mcp/getting-started/articles/zoho-mcp-help-documentation#Manage_Your_Zoho_MCP_Server_Connections)
 
-## Regenerating Your API Key
+## Regenerate API Key
 
-If your Server URL is exposed or compromised, regenerate your API key immediately. This invalidates the old URL and prevents anyone who has it from accessing your Zoho Billing data.
+If your Server URL is compromised, regenerate your API key immediately.
 
-1. Go to **Connect** module in the left sidebar.
-2. Click **Regenerate API Key**.
-3. Copy the new Server URL and update it in all connected MCP clients.
+1. Open **Connect** in Zoho MCP.
+2. Select **Regenerate API Key**.
+3. Copy the new Server URL.
+4. Update all connected MCP clients.
 
-> **Note:** Regenerating the API key disconnects all existing MCP client integrations. You'll need to reconfigure each client with the new URL.
+> **Note:** Regenerating the key invalidates the previous URL and disconnects existing MCP client integrations until updated.
 
 ## Example Prompts
 
 ### Invoices
 
-- *"In [Org Name] (Org ID), create an invoice for Zylker Corp with three items — Professional Services at $500, Support at $200, and Setup at $100."*
-- *"In [Org Name] (Org ID), collect payment for John's invoice using his saved bank account."*
+- "In [Org Name] (Org ID), create an invoice for Zylker Corp with three items: Professional Services at $500, Support at $200, and Setup at $100."
+- "In [Org Name] (Org ID), collect payment for John's invoice using his saved bank account."
 
 ### Subscriptions
 
-- *"In [Org Name] (Org ID), set up a new subscription for Zylker Corp on the Growth plan."*
+- "In [Org Name] (Org ID), create a new subscription for Zylker Corp on the Growth plan."
 
 ### Reports
 
-- *"In [Org Name] (Org ID), get the ARR report for Q1 2025 and summarize the month-on-month trend."*
-- *"In [Org Name] (Org ID), get the AR aging summary report for January and list all customers with outstanding invoices."*
+- "In [Org Name] (Org ID), get the ARR report for Q1 2025 and summarize month-over-month trends."
+- "In [Org Name] (Org ID), get the AR aging summary report for January and list customers with outstanding invoices."
 
-### Quotes & Plans
+### Quotes and Plans
 
-- *"In [Org Name] (Org ID), create a quote for Acme Corp for Professional Services, Support, and Onboarding."*
-- *"In [Org Name] (Org ID), create a new plan called Business Pro, billed monthly at $99."*
+- "In [Org Name] (Org ID), create a quote for Acme Corp for Professional Services, Support, and Onboarding."
+- "In [Org Name] (Org ID), create a new plan named Business Pro, billed monthly at $99."
 
 ### Payments
 
-- *"In [Org Name] (Org ID), record a payment of $500 from Zylker Corp against their latest invoice."*
-- *"In [Org Name] (Org ID), create a payment link for Sarah for her outstanding invoice."*
+- "In [Org Name] (Org ID), record a payment of $500 from Zylker Corp against their latest invoice."
+- "In [Org Name] (Org ID), create a payment link for Sarah for her outstanding invoice."
 
-> **Pro Tip:** Select only the tools you need for the current task before starting a chat. This keeps responses focused and reduces unintended actions.
+> **Tip:** Enable only the tools needed for the current task. This improves response accuracy and reduces unintended actions.
 
 ## Prompt Best Practices
 
-- **Name things specifically** — Use exact field names, IDs, and module names as they appear in Zoho Billing.
-- **Reference records by unique IDs** — avoid ambiguity about which customer, invoice, or plan you mean.
-- **State your intent clearly** — what you want done, to what, and under what conditions.
-- **Include edge cases upfront** — if something should only happen when a condition is met, say so.
+- Use exact module names, field names, and record IDs from Zoho Billing.
+- Reference records by unique IDs to avoid ambiguity.
+- Clearly specify intent, target records, and conditions.
+- Include edge-case handling in the initial prompt.
+
+## FAQ
+
+### Is Zoho Billing MCP secure?
+
+Yes. Security depends on your configured permissions, enabled tools, OAuth connections, and how safely you handle your MCP Server URL.
+
+### Can I use Zoho Billing MCP with clients other than Claude and ChatGPT?
+
+Yes. Any MCP-compatible client can work, including Cursor, VS Code, and other custom MCP clients.
+
+### What happens if I regenerate the API key?
+
+The previous Server URL stops working immediately, and all clients must be updated with the new URL.
 
 ## Resources
 
 - [Zoho Billing Help Documentation](https://www.zoho.com/billing/help/)
 - [Zoho MCP Documentation](https://help.zoho.com/portal/en/kb/mcp/getting-started/articles/zoho-mcp-help-documentation)
 - [Zoho Billing API](https://www.zoho.com/billing/api/v1/)
-- [Community Forum](https://help.zoho.com/portal/en/community/zoho-billing)
+- [Zoho Billing Community Forum](https://help.zoho.com/portal/en/community/zoho-billing)
 
 ## License
 
-© Zoho Corporation Pvt. Ltd. All Rights Reserved.
+Copyright (c) Zoho Corporation Pvt. Ltd. All rights reserved.
